@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#1a1916">
+<meta name="format-detection" content="telephone=no">
+<link rel="apple-touch-icon" href="data:,">
+<link rel="manifest" href="manifest-owner.json">
+<title>W오피스 공사 — 건물주</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#f4f3f0;--surface:#fff;--bd:#e2e0da;--bd2:#c8c5bc;
+  --text:#1a1916;--sub:#6b6860;--hint:#b0ada6;
+  --ph1:#7f77dd;--ph2:#e24b4a;--ph3:#ba7517;--ph4:#af52de;--ph5:#1d9e75;
+  --green:#1d9e75;--red:#e24b4a;--amber:#ba7517;--blue:#185fa5;
+  --sb:env(safe-area-inset-bottom,0px);--st:env(safe-area-inset-top,0px);
+  --sl:env(safe-area-inset-left,0px);--sr:env(safe-area-inset-right,0px);
+}
+html,body{height:100%;overflow:hidden;overscroll-behavior:none;}
+body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%;touch-action:manipulation;}
+
+/* ── APP ── */
+#app{position:fixed;inset:0;display:flex;flex-direction:column;}
+
+/* Header */
+.hdr{background:var(--text);color:#fff;padding:12px 16px;padding-top:calc(12px + var(--st));padding-left:calc(16px + var(--sl));padding-right:calc(16px + var(--sr));display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.hdr-title{font-size:17px;font-weight:700;flex:1;letter-spacing:-.01em;}
+.hdr-user{font-size:11px;background:#2a2a28;padding:4px 12px;border-radius:20px;color:#ccc;}
+
+/* Inspection banner */
+.insp-banner{padding:14px 16px;padding-left:calc(16px + var(--sl));padding-right:calc(16px + var(--sr));background:linear-gradient(135deg, #1a1916 0%, #2a2a28 100%);flex-shrink:0;display:flex;align-items:center;gap:12px;border-top:2px solid var(--amber);}
+.insp-dot{width:14px;height:14px;border-radius:50%;flex-shrink:0;box-shadow:0 0 6px currentColor;}
+.insp-dot.pending{background:var(--amber);color:var(--amber);animation:pulse 2s infinite;}
+.insp-dot.active{background:var(--red);color:var(--red);animation:pulse 0.8s infinite;box-shadow:0 0 10px var(--red);}
+.insp-dot.done{background:var(--green);color:var(--green);}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.4;transform:scale(1.1);}}
+.insp-text{font-size:13px;color:#fff;line-height:1.45;}
+.insp-text strong{color:var(--amber);font-weight:700;display:block;margin-bottom:4px;}
+
+/* Summary strip */
+.sumbar{display:grid;grid-template-columns:1fr 1fr 1fr;background:var(--surface);border-bottom:.5px solid var(--bd);flex-shrink:0;box-shadow:0 1px 3px rgba(0,0,0,.08);}
+.si{padding:12px 8px;text-align:center;border-right:.5px solid var(--bd);}
+.si:last-child{border-right:none;}
+.si-n{font-size:22px;font-weight:700;letter-spacing:-.02em;line-height:1.1;}
+.si-n.g{color:#159870;}.si-n.a{color:#a5630f;}
+.si-l{font-size:11px;color:var(--hint);margin-top:1px;}
+
+/* Filter */
+.ftbar{display:flex;gap:6px;padding:8px 12px;padding-left:calc(12px + var(--sl));background:var(--surface);border-bottom:.5px solid var(--bd);overflow-x:auto;flex-shrink:0;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.ftbar::-webkit-scrollbar{display:none;}
+.ft{padding:7px 14px;border-radius:20px;border:1.5px solid var(--bd);font-size:12px;font-weight:500;color:var(--sub);background:var(--surface);cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all .12s;min-height:36px;display:flex;align-items:center;}
+.ft.on{background:var(--text);color:#fff;border-color:var(--text);}
+.ft:active{transform:scale(.95);}
+
+/* Scroll */
+.scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:calc(20px + var(--sb));scroll-behavior:smooth;}
+
+/* Phase block */
+.ph-wrap{margin:14px 12px 0;margin-left:calc(12px + var(--sl));margin-right:calc(12px + var(--sr));}
+.ph-hdr{display:flex;align-items:center;gap:8px;padding:11px 14px;border-radius:10px 10px 0 0;border-left:3px solid;flex-wrap:wrap;}
+.ph-num{font-size:10px;font-weight:700;opacity:.6;letter-spacing:.07em;}
+.ph-ttl{font-size:14px;font-weight:700;flex:1;min-width:0;}
+.ph-dt{font-size:12px;opacity:.7;}
+.ph-prog{font-size:12px;font-weight:700;opacity:.8;}
+.c1{background:#f0eef9;border-color:var(--ph1);color:#3c3489;}
+.c2{background:#fceeed;border-color:var(--ph2);color:#791f1f;}
+.c3{background:#fef6e7;border-color:var(--ph3);color:#633806;}
+.c4{background:#f3edfb;border-color:var(--ph4);color:#5b2d8a;}
+.c5{background:#e8f5ee;border-color:var(--ph5);color:#085041;}
+.ph-body{background:var(--surface);border:.5px solid var(--bd);border-top:none;border-radius:0 0 10px 10px;overflow:hidden;margin-bottom:14px;}
+
+/* Progress bar */
+.progbar{height:4px;background:var(--bd);}
+.progbar-fill{height:100%;transition:width .3s;}
+
+/* Task row */
+.tr{display:flex;align-items:flex-start;gap:0;border-bottom:.5px solid var(--bd);cursor:pointer;transition:background .1s,transform .1s;min-height:60px;padding:8px 0;}
+.tr:last-child{border-bottom:none;}
+.tr:active{background:#f8f7f4;transform:scale(1.01);}
+.tr.dn{background:#f0faf5;}
+
+.tr-chk{width:60px;flex-shrink:0;display:flex;align-items:center;justify-content:center;padding:14px 0;align-self:stretch;min-height:60px;}
+.chk-circle{width:32px;height:32px;border-radius:50%;border:3px solid var(--bd);display:flex;align-items:center;justify-content:center;font-size:13px;color:#fff;flex-shrink:0;transition:all .15s;}
+.tr.dn .chk-circle{background:var(--green);border-color:var(--green);}
+
+.tr-body{flex:1;min-width:0;padding:12px 10px 12px 0;}
+.tr-name{font-size:14px;font-weight:500;line-height:1.5;word-break:keep-all;color:var(--text);}
+.tr.dn .tr-name{color:var(--hint);text-decoration:line-through;}
+.tr-meta{display:flex;align-items:center;gap:4px;margin-top:5px;flex-wrap:wrap;}
+.bdg{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.bc{background:#e8f0fe;color:#185fa5;}
+.bn{background:#eaf3de;color:#3b6d11;}
+.bb{background:#d1fae5;color:#065f46;}
+.be{background:#f4f3f0;color:#6b6860;}
+.dchip{font-size:11px;color:var(--hint);}
+.tr-detail{margin-top:6px;display:flex;flex-wrap:wrap;gap:4px;align-items:center;}
+.amt-val{font-size:13px;font-weight:700;color:var(--green);}
+.att-tags{display:inline-flex;gap:3px;flex-wrap:wrap;}
+.att-chip{font-size:11px;padding:1px 6px;border-radius:4px;background:#f0eef9;color:#3c3489;white-space:nowrap;}
+.memo-txt{font-size:12px;color:var(--sub);margin-top:3px;line-height:1.4;width:100%;}
+
+/* Total section */
+.tot-wrap{margin:0 12px 14px;margin-left:calc(12px + var(--sl));margin-right:calc(12px + var(--sr));background:var(--surface);border:.5px solid var(--bd);border-radius:10px;overflow:hidden;}
+.tot-hd{padding:10px 16px;font-size:10px;font-weight:700;letter-spacing:.07em;color:var(--hint);text-transform:uppercase;border-bottom:.5px solid var(--bd);}
+.tot-row{display:flex;justify-content:space-between;align-items:center;padding:11px 16px;border-bottom:.5px solid var(--bd);}
+.tot-row:last-child{border-bottom:none;}
+.tl{font-size:14px;color:var(--sub);}
+.tv{font-size:15px;font-weight:700;}
+.tv.big{font-size:22px;}.tv.g{color:var(--green);}
+
+/* ── VIEW SHEET ── */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;display:none;align-items:flex-end;-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);}
+.ov.on{display:flex;}
+.sheet{background:var(--surface);border-radius:20px 20px 0 0;width:100%;max-height:92vh;overflow-y:auto;padding:20px 20px calc(24px + var(--sb));padding-left:calc(20px + var(--sl));padding-right:calc(20px + var(--sr));-webkit-overflow-scrolling:touch;}
+.sh-bar{display:flex;align-items:center;margin-bottom:16px;}
+.sh{width:40px;height:4px;background:var(--bd);border-radius:2px;margin:0 auto;}
+.sh-close{position:absolute;right:20px;background:none;border:none;font-size:15px;color:var(--hint);cursor:pointer;padding:8px 12px;font-family:inherit;font-weight:500;min-height:44px;min-width:44px;display:flex;align-items:center;justify-content:center;}
+.sh-close:active{color:var(--text);}
+.st{font-size:18px;font-weight:700;margin-bottom:3px;line-height:1.35;word-break:keep-all;}
+.ss{font-size:12px;color:var(--sub);margin-bottom:18px;line-height:1.5;}
+.vo-row{display:flex;justify-content:space-between;align-items:flex-start;padding:12px 0;border-bottom:.5px solid var(--bd);}
+.vo-row:last-child{border-bottom:none;}
+.vo-label{font-size:13px;color:var(--hint);flex-shrink:0;width:72px;}
+.vo-val{font-size:14px;font-weight:500;text-align:right;flex:1;word-break:keep-all;}
+.close-btn{width:100%;padding:14px;background:none;color:var(--sub);border:1.5px solid var(--bd);border-radius:12px;font-size:15px;font-weight:500;font-family:inherit;cursor:pointer;margin-top:16px;min-height:48px;}
+.close-btn:active{background:#f8f7f4;}
+.empty{text-align:center;padding:48px 20px;color:var(--hint);font-size:13px;}
+
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-sp{display:inline-block;width:16px;height:16px;border:2px solid var(--bd);border-top-color:var(--text);border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;margin-right:6px;}
+</style>
+</head>
+<body>
+
+<div id="app">
+  <div class="hdr">
+    <div class="hdr-title">W오피스 공사현장</div>
+    <div class="hdr-user">류재형 건물주</div>
+  </div>
+  <div class="insp-banner" id="insp-banner">
+    <div class="insp-dot pending" id="insp-dot"></div>
+    <div class="insp-text" id="insp-text">불러오는 중...</div>
+  </div>
+  <div class="sumbar">
+    <div class="si"><div class="si-n" id="s0">-</div><div class="si-l">전체</div></div>
+    <div class="si"><div class="si-n g" id="s1">-</div><div class="si-l">완료</div></div>
+    <div class="si"><div class="si-n a" id="s2">-</div><div class="si-l">지출(만원)</div></div>
+  </div>
+  <div class="ftbar">
+    <div class="ft on" onclick="setF('전체',this)">전체 공정표</div>
+    <div class="ft" onclick="setF('미완료',this)">미완료</div>
+    <div class="ft" onclick="setF('완료',this)">완료</div>
+  </div>
+  <div class="scroll" id="scroll">
+    <div id="tlist"></div>
+    <div id="totbox"></div>
+    <div style="height:16px"></div>
+  </div>
+</div>
+
+<!-- VIEW SHEET -->
+<div class="ov" id="ov-view">
+  <div class="sheet">
+    <div class="sh-bar" style="position:relative;">
+      <div class="sh"></div>
+      <button class="sh-close" onclick="closeSheet()">✕</button>
+    </div>
+    <div class="st" id="vo-t"></div>
+    <div class="ss" id="vo-s"></div>
+    <div id="vo-body"></div>
+    <button class="close-btn" onclick="closeSheet()">닫기</button>
+  </div>
+</div>
+
+<script>
+const SB='https://wmwwqfajjhbbfmatvfwd.supabase.co';
+const AK='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indtd3dxZmFqamhiYmZtYXR2ZndkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU5OTg1NTksImV4cCI6MjA5MTU3NDU1OX0.-9y_YoBToo9pSDEnEwWGn9XI5STILiep2SakwC_kUQw';
+const PHN={1:'사전 준비',2:'철거·분리보관',3:'목공·나호용 차장 작업',4:'전체 도배·검사 신청',5:'검사 통과 후 복원'};
+const PHD={1:'4/13~4/15',2:'4/16~4/17',3:'4/17~4/22',4:'4/22~4/24',5:'검사 통과 후'};
+const PHC=['c1','c2','c3','c4','c5'];
+const PHB={1:'var(--ph1)',2:'var(--ph2)',3:'var(--ph3)',4:'var(--ph4)',5:'var(--ph5)'};
+
+let tasks=[],recs={},atts={},filt='전체';
+
+function closeSheet(){document.getElementById('ov-view').classList.remove('on');}
+
+async function api(p){
+  const h={'apikey':AK,'Authorization':'Bearer '+AK,'Content-Type':'application/json'};
+  const r=await fetch(SB+'/rest/v1/'+p,{headers:h});
+  const t=await r.text();return t?JSON.parse(t):null;
+}
+
+async function load(){
+  document.getElementById('tlist').innerHTML='<div class="empty"><span class="loading-sp"></span>불러오는 중...</div>';
+  const [t,r,a]=await Promise.all([
+    api('tasks?order=sort_order'),
+    api('task_records?select=*'),
+    api('attachments?select=id,task_id,file_name,doc_type')
+  ]);
+  tasks=t||[];
+  recs={};(r||[]).forEach(x=>recs[x.task_id]=x);
+  atts={};(a||[]).forEach(x=>{if(!atts[x.task_id])atts[x.task_id]=[];atts[x.task_id].push(x);});
+  render();
+  updateBanner();
+}
+
+function matchF(t){
+  const r=recs[t.id];
+  if(filt==='전체')return true;
+  if(filt==='미완료')return !r||r.status!=='done';
+  if(filt==='완료')return r&&r.status==='done';
+  return true;
+}
+function setF(f,el){
+  filt=f;
+  document.querySelectorAll('.ft').forEach(x=>x.classList.remove('on'));
+  el.classList.add('on');render();
+}
+
+function bdgCls(a){
+  if(a.includes('박종호'))return 'bc';
+  if(a.includes('나호용'))return 'bn';
+  if(a==='대표+차장')return 'bb';
+  return 'be';
+}
+function fm(n){return Number(n).toLocaleString('ko-KR');}
+function parseDateSort(t){
+  const lbl=t.date_label||'';
+  const m=lbl.match(/(\d+)\/(\d+)/);
+  if(!m)return 99999;
+  return parseInt(m[1])*100+parseInt(m[2]);
+}
+
+function updateBanner(){
+  const ph4=tasks.filter(t=>t.phase===4);
+  const ph4Done=ph4.filter(t=>recs[t.id]&&recs[t.id].status==='done').length;
+  const ph3=tasks.filter(t=>t.phase<=3);
+  const ph3Done=ph3.filter(t=>recs[t.id]&&recs[t.id].status==='done').length;
+  const dot=document.getElementById('insp-dot');
+  const txt=document.getElementById('insp-text');
+
+  if(ph4.length>0&&ph4Done===ph4.length){
+    dot.className='insp-dot done';
+    txt.innerHTML='<strong>검사 통과</strong> · 복원 공사 진행중';
+  } else if(ph3.length>0&&ph3Done===ph3.length){
+    dot.className='insp-dot active';
+    txt.innerHTML='<strong>구청 건축과 검사 신청 접수가 필요합니다</strong><br>건물주님께서 직접 구청에 신청 접수 부탁드립니다';
+  } else {
+    dot.className='insp-dot pending';
+    txt.innerHTML='<strong>현재 공사 진행중입니다</strong><br>구청 건축과 검사 신청을 미리 접수해 두시면 일정이 빨라집니다';
+  }
+}
+
+function render(){
+  let tamt=0;
+  const fl=tasks.filter(matchF);
+  let h='';
+
+  [1,2,3,4,5].forEach(ph=>{
+    const pt=fl.filter(t=>t.phase===ph).sort((a,b)=>parseDateSort(a)-parseDateSort(b));
+    if(!pt.length)return;
+    const ptAll=tasks.filter(t=>t.phase===ph);
+    const ptDone=ptAll.filter(t=>recs[t.id]&&recs[t.id].status==='done').length;
+    const progPct=ptAll.length?Math.round(ptDone/ptAll.length*100):0;
+
+    h+=`<div class="ph-wrap">
+      <div class="ph-hdr ${PHC[ph-1]}">
+        <span class="ph-num">PHASE ${ph}</span>
+        <span class="ph-ttl">${PHN[ph]}</span>
+        <span class="ph-dt">${PHD[ph]}</span>
+        <span class="ph-prog">${ptDone}/${ptAll.length}</span>
+      </div>
+      <div class="ph-body">
+        <div class="progbar"><div class="progbar-fill" style="width:${progPct}%;background:${PHB[ph]}"></div></div>`;
+
+    pt.forEach(t=>{
+      const r=recs[t.id],at=atts[t.id]||[];
+      const dn=r&&r.status==='done';
+      const damt=r?r.owner_amount||0:0;
+      if(damt>0)tamt+=damt;
+
+      h+=`<div class="tr${dn?' dn':''}" onclick="openView('${t.id}')">
+        <div class="tr-chk">
+          <div class="chk-circle">${dn?'✓':''}</div>
+        </div>
+        <div class="tr-body">
+          <div class="tr-name">${t.task_name}</div>
+          <div class="tr-meta">
+            <span class="bdg ${bdgCls(t.assignee)}">${t.assignee}</span>
+            ${t.date_label?`<span class="dchip">${t.date_label}</span>`:''}
+            ${t.note?`<span class="dchip">· ${t.note}</span>`:''}
+          </div>
+          ${(damt>0||at.length||r?.memo)?`<div class="tr-detail">
+            ${damt>0?`<span class="amt-val">₩${fm(damt)} <span style="font-size:10px;font-weight:400;color:var(--hint)">(공급가)</span></span>`:''}
+            ${at.length?`<span class="att-tags">${at.map(a=>`<span class="att-chip">${({receipt:'🧾영수증',tax_invoice:'📄세금계산서',etc:'📎기타'})[a.doc_type]||'📎'+a.file_name}</span>`).join('')}</span>`:''}
+            ${r?.memo?`<div class="memo-txt">${r.memo}</div>`:''}
+          </div>`:''}
+        </div>
+      </div>`;
+    });
+    h+='</div></div>';
+  });
+
+  if(!fl.length){
+    let emptyIcon='📋',emptyMsg='항목이 없습니다';
+    if(filt==='완료'){emptyIcon='🏗️';emptyMsg='아직 완료된 항목이 없습니다';}
+    else if(filt==='미완료'){emptyIcon='🎉';emptyMsg='모든 항목이 완료되었습니다!';}
+    h='<div class="empty"><div style="font-size:48px;margin-bottom:12px;">'+emptyIcon+'</div>'+emptyMsg+'</div>';
+  }
+  document.getElementById('tlist').innerHTML=h;
+
+  const allDone=tasks.filter(t=>recs[t.id]&&recs[t.id].status==='done').length;
+  document.getElementById('s0').textContent=tasks.length;
+  document.getElementById('s1').textContent=allDone;
+  document.getElementById('s2').textContent=Math.floor(tamt/10000)||0;
+
+  document.getElementById('totbox').innerHTML=`
+    <div class="tot-wrap">
+      <div class="tot-hd">지출 합계</div>
+      <div class="tot-row"><span class="tl">총 공급가 <span style="font-size:11px;color:var(--hint)">(부가세 별도)</span></span><span class="tv big">₩${fm(tamt)}</span></div>
+    </div>`;
+}
+
+function openView(tid){
+  const t=tasks.find(x=>x.id===tid),r=recs[tid],at=atts[tid]||[];
+  document.getElementById('vo-t').textContent=t.task_name;
+  document.getElementById('vo-s').textContent=`PHASE ${t.phase} · ${PHN[t.phase]}`;
+  const dn=r&&r.status==='done';
+  const damt=r?r.owner_amount||0:0;
+  let b=`<div class="vo-row"><span class="vo-label">상태</span><span class="vo-val">${dn?'✅ 완료':'⏳ 진행중'}</span></div>`;
+  b+=`<div class="vo-row"><span class="vo-label">담당자</span><span class="vo-val">${t.assignee}</span></div>`;
+  b+=`<div class="vo-row"><span class="vo-label">일정</span><span class="vo-val">${t.date_label||'미정'}</span></div>`;
+  if(damt>0){
+    b+=`<div class="vo-row"><span class="vo-label">공급가</span><span class="vo-val" style="color:var(--green)">₩${fm(damt)}</span></div>`;
+  }
+  if(r?.memo)b+=`<div class="vo-row"><span class="vo-label">메모</span><span class="vo-val">${r.memo}</span></div>`;
+  if(at.length){
+    const lbs={receipt:'🧾 영수증',tax_invoice:'📄 서류',etc:'📎 기타'};
+    b+=`<div class="vo-row"><span class="vo-label">첨부</span><span class="vo-val">${at.map(a=>lbs[a.doc_type]||a.file_name).join(', ')}</span></div>`;
+  }
+  if(t.note)b+=`<div class="vo-row"><span class="vo-label">비고</span><span class="vo-val">${t.note}</span></div>`;
+  document.getElementById('vo-body').innerHTML=b;
+  document.getElementById('ov-view').classList.add('on');
+}
+
+document.querySelectorAll('.ov').forEach(el=>{
+  el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('on');});
+});
+
+document.body.addEventListener('touchmove',function(e){
+  if(e.target.closest('.scroll,.sheet'))return;
+  e.preventDefault();
+},{passive:false});
+
+// Auto load
+load();
+// Refresh every 30 seconds
+setInterval(load,30000);
+
+// 카카오톡 인앱 브라우저 감지 → 크롬 전환
+(function(){
+  const ua=navigator.userAgent;
+  if(/KAKAOTALK/i.test(ua)){
+    const url=location.href;
+    document.body.innerHTML=`
+      <div style="position:fixed;inset:0;background:#1a1916;display:flex;align-items:center;justify-content:center;padding:32px;z-index:9999;">
+        <div style="text-align:center;max-width:300px;">
+          <div style="font-size:38px;font-weight:700;color:#fff;margin-bottom:6px;">W오피스</div>
+          <div style="font-size:13px;color:#888;margin-bottom:40px;">앱으로 설치하려면 크롬에서 열어주세요</div>
+          <a href="intent://${url.replace(/https?:\/\//,'')}#Intent;scheme=https;package=com.android.chrome;end"
+            style="display:block;padding:18px;background:#fff;color:#1a1916;border-radius:14px;font-size:16px;font-weight:700;text-decoration:none;font-family:'Noto Sans KR',sans-serif;margin-bottom:12px;">
+            크롬으로 열기
+          </a>
+          <div style="font-size:11px;color:#555;line-height:1.6;">
+            iPhone은 우측 상단 ⋮ → Safari로 열기<br>
+            → 공유 버튼 → 홈 화면에 추가
+          </div>
+        </div>
+      </div>`;
+    return;
+  }
+  // PWA 설치 프롬프트
+  let deferredPrompt=null;
+  window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;showInstallBanner();});
+  function showInstallBanner(){
+    if(document.getElementById('pwa-banner'))return;
+    const b=document.createElement('div');
+    b.id='pwa-banner';
+    b.style.cssText='position:fixed;bottom:0;left:0;right:0;background:#1a1916;padding:16px 20px;padding-bottom:calc(16px + env(safe-area-inset-bottom,0px));display:flex;align-items:center;gap:12px;z-index:9999;box-shadow:0 -2px 10px rgba(0,0,0,.3);';
+    b.innerHTML=`
+      <div style="flex:1;color:#fff;font-size:13px;font-weight:500;">홈 화면에 추가하면 앱처럼 사용할 수 있습니다</div>
+      <button onclick="installPWA()" style="padding:10px 20px;background:#fff;color:#1a1916;border:none;border-radius:10px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;white-space:nowrap;">설치</button>
+      <button onclick="this.parentElement.remove()" style="background:none;border:none;color:#555;font-size:18px;cursor:pointer;padding:4px;">✕</button>`;
+    document.body.appendChild(b);
+  }
+  window.installPWA=async function(){
+    if(!deferredPrompt)return;
+    deferredPrompt.prompt();
+    await deferredPrompt.userChoice;
+    deferredPrompt=null;
+    const b=document.getElementById('pwa-banner');if(b)b.remove();
+  };
+  if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});}
+})();
+</script>
+</body>
+</html>
